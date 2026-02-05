@@ -21,13 +21,16 @@ This evaluator detects these attacks by analyzing:
 
 ```
 .
-├── goal_hijack_evaluator.py              # Custom evaluator implementation
-├── test_agent.py                          # Test Strands agent (customer support)
-├── test_goal_hijack_evaluation.py        # Basic test suite (9 scenarios)
-├── test_advanced_attack_scenarios.py     # Advanced test suite (15 scenarios)
-├── analyze_evaluation_results.py         # Results analyzer with recommendations
-├── requirements.txt                       # Python dependencies
-└── README.md                              # This file
+├── goal_hijack_evaluator.py                      # Standalone evaluator (development)
+├── test_agent.py                                  # Test Strands agent
+├── test_goal_hijack_evaluation.py                # Basic test suite (9 scenarios)
+├── test_advanced_attack_scenarios.py             # Advanced test suite (15 scenarios)
+├── analyze_evaluation_results.py                 # Results analyzer
+├── agentcore_goal_hijack_evaluator_config.json   # AgentCore evaluator config
+├── deploy_agentcore_evaluator.py                 # AgentCore deployment script
+├── AGENTCORE_INTEGRATION.md                      # Production integration guide
+├── requirements.txt                               # Python dependencies
+└── README.md                                      # This file
 ```
 
 ## Installation
