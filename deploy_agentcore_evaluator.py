@@ -22,21 +22,33 @@ class AgentCoreEvaluatorDeployer:
         self.evaluator_name = "goal_hijack_detector"
         self.config_file = "agentcore_goal_hijack_evaluator_config.json"
         self.online_config_name = "security_monitoring"
+        self.agentcore_cmd = ["agentcore"]  # Will be set in check_prerequisites
         
     def check_prerequisites(self) -> bool:
         """Check if prerequisites are met."""
         logger.info("Checking prerequisites...")
         
         # Check if agentcore CLI is installed
-        try:
-            result = subprocess.run(
-                ["agentcore", "--version"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            logger.info(f"✓ AgentCore CLI installed: {result.stdout.strip()}")
-        except (subprocess.CalledProcessError, FileNotFoundError):
+        # Try the venv path first, then system path
+        agentcore_paths = [
+            ".venv/bin/agentcore",
+            "agentcore"
+        ]
+        
+        for cmd_path in agentcore_paths:
+            try:
+                result = subprocess.run(
+                    [cmd_path, "--help"],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                logger.info(f"✓ AgentCore CLI found: {cmd_path}")
+                self.agentcore_cmd = [cmd_path]
+                break
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                continue
+        else:
             logger.error("✗ AgentCore CLI not found. Install with: pip install bedrock-agentcore-starter-toolkit")
             return False
         
@@ -49,7 +61,7 @@ class AgentCoreEvaluatorDeployer:
         # Check if agent is deployed
         try:
             result = subprocess.run(
-                ["agentcore", "status"],
+                self.agentcore_cmd + ["status"],
                 capture_output=True,
                 text=True,
                 check=True
@@ -71,7 +83,7 @@ class AgentCoreEvaluatorDeployer:
         
         try:
             subprocess.run(
-                ["agentcore", "eval", "evaluator", "list"],
+                self.agentcore_cmd + ["eval", "evaluator", "list"],
                 check=True
             )
         except subprocess.CalledProcessError as e:
@@ -83,8 +95,8 @@ class AgentCoreEvaluatorDeployer:
         logger.info("Creating Goal Hijack Security Evaluator...")
         logger.info("=" * 80)
         
-        cmd = [
-            "agentcore", "eval", "evaluator", "create",
+        cmd = self.agentcore_cmd + [
+            "eval", "evaluator", "create",
             "--name", self.evaluator_name,
             "--config", self.config_file,
             "--level", "TRACE",
@@ -122,8 +134,8 @@ class AgentCoreEvaluatorDeployer:
         logger.info("Testing Goal Hijack Evaluator...")
         logger.info("=" * 80)
         
-        cmd = [
-            "agentcore", "eval", "run",
+        cmd = self.agentcore_cmd + [
+            "eval", "run",
             "--evaluator", self.evaluator_name
         ]
         
@@ -162,8 +174,8 @@ class AgentCoreEvaluatorDeployer:
         logger.info("Setting up Continuous Security Monitoring...")
         logger.info("=" * 80)
         
-        cmd = [
-            "agentcore", "eval", "online", "create",
+        cmd = self.agentcore_cmd + [
+            "eval", "online", "create",
             "--name", self.online_config_name,
             "--sampling-rate", str(sampling_rate),
             "--evaluator", self.evaluator_name,
